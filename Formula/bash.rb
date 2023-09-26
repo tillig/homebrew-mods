@@ -1,4 +1,4 @@
-# Modified to skip gnu.org domains.
+# Modified to skip ftp.gnu.org.
 class Bash < Formula
   desc "Bourne-Again SHell, a UNIX command interpreter"
   homepage "https://www.gnu.org/software/bash/"
