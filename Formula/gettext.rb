@@ -2,33 +2,42 @@
 class Gettext < Formula
   desc "GNU internationalization (i18n) and localization (l10n) library"
   homepage "https://www.gnu.org/software/gettext/"
-  # url "https://ftp.gnu.org/gnu/gettext/gettext-0.22.5.tar.gz"
-  # mirror "https://ftpmirror.gnu.org/gettext/gettext-0.22.5.tar.gz"
-  url "https://ftpmirror.gnu.org/gettext/gettext-0.22.5.tar.gz"
-  mirror "http://ftp.gnu.org/gnu/gettext/gettext-0.22.5.tar.gz"
-  sha256 "ec1705b1e969b83a9f073144ec806151db88127f5e40fe5a94cb6c8fa48996a0"
+  # url "https://ftp.gnu.org/gnu/gettext/gettext-0.23.tar.gz"
+  # mirror "https://ftpmirror.gnu.org/gettext/gettext-0.23.tar.gz"
+  url "https://ftpmirror.gnu.org/gettext/gettext-0.23.tar.gz"
+  mirror "http://ftp.gnu.org/gnu/gettext/gettext-0.23.tar.gz"
+  sha256 "945dd7002a02dd7108ad0510602e13416b41d327898cf8522201bc6af10907a6"
   license "GPL-3.0-or-later"
 
   bottle do
-    sha256 arm64_sonoma:   "4b5b6cb0692b4606b9220fcbc9da3ab546234348dc87ef8033830e22c4c7bdb1"
-    sha256 arm64_ventura:  "06ee5992f8a7dbf85a1b0e4c6311029cefda6d70852e5abd28f2e8e30d27cfcf"
-    sha256 arm64_monterey: "2707884e348a412db35279bdd713c9026c1b1cf40fcc67fc562e68b26189bb86"
-    sha256 sonoma:         "13492dddf82cad8dcb20d1c6375138a0712ce8e3c25b612256672446175c9727"
-    sha256 ventura:        "1a35820de97aa8d93019d64f7add5443bcf1c14f05bd249e670e7ca0f0fc6b2a"
-    sha256 monterey:       "93211634913a6762dbf0e50dd644b9c932ec19124c4500f97228fbff80b0821c"
-    sha256 x86_64_linux:   "11f57f3c216f3603a194fe96d22ee05b2d01fbbaeb4a0047ed43cee25d29f9aa"
+    sha256 arm64_sequoia: "920c38bf7e32b5e72c9863f35332d47e8b3b972256a5c2b49ca454beeadd2984"
+    sha256 arm64_sonoma:  "2041dafd8f25affab963100bd7735c493abc0efef0ca141a9239ac6fc60e5a19"
+    sha256 arm64_ventura: "dbdefb1ee1b6de90e4cca9d5a370239d19e9f1cbb9f07892dd046de134d3cebc"
+    sha256 sonoma:        "c93fc77db63462932e615d295ef455f3dab6d4c0ec0f20db130082998ee6ac57"
+    sha256 ventura:       "4a9d298346e29db0230996416a154e54fdc8056fdb268ef7493576d82aadb9e2"
+    sha256 x86_64_linux:  "17a3a3358d80af17a45be7d2b71b4d1961bd1b044cf83e3d0457c3a54a6ce85f"
   end
+
+  depends_on "libunistring"
 
   uses_from_macos "libxml2"
   uses_from_macos "ncurses"
 
+  on_linux do
+    depends_on "acl"
+  end
+
   def install
+    # macOS iconv implementation is slightly broken since Sonoma.
+    # This is also why we skip `make check`.
+    # upstream bug report, https://savannah.gnu.org/bugs/index.php?66541
+    ENV["am_cv_func_iconv_works"] = "yes" if OS.mac? && MacOS.version == :sequoia
+
     args = [
+      "--with-libunistring-prefix=#{Formula["libunistring"].opt_prefix}",
       "--disable-silent-rules",
       "--with-included-glib",
       "--with-included-libcroco",
-      "--with-included-libunistring",
-      "--with-included-libxml",
       "--with-emacs",
       "--with-lispdir=#{elisp}",
       "--disable-java",
