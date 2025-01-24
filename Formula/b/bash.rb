@@ -1,4 +1,3 @@
-# Modified to skip ftp.gnu.org.
 class Bash < Formula
   desc "Bourne-Again SHell, a UNIX command interpreter"
   homepage "https://www.gnu.org/software/bash/"
@@ -6,9 +5,8 @@ class Bash < Formula
   head "https://git.savannah.gnu.org/git/bash.git", branch: "master"
 
   stable do
-    # url "https://ftp.gnu.org/gnu/bash/bash-5.2.tar.gz"
-    # mirror "https://ftpmirror.gnu.org/bash/bash-5.2.tar.gz"
     url "https://ftpmirror.gnu.org/bash/bash-5.2.tar.gz"
+    mirror "https://ftpmirror.gnu.org/bash/bash-5.2.tar.gz"
     mirror "https://mirrors.kernel.org/gnu/bash/bash-5.2.tar.gz"
     mirror "https://mirrors.ocf.berkeley.edu/gnu/bash/bash-5.2.tar.gz"
     sha256 "a139c166df7ff4471c5e0733051642ee5556c1cc8a4a78f145583c5c81ab32fb"
@@ -54,7 +52,7 @@ class Bash < Formula
       037 8a2c1c3b5125d9ae5b47882f7d2ddf9648805f8c67c13aa5ea7efeac475cda94
     ].each_slice(2) do |p, checksum|
       patch :p0 do
-        url "https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-#{p}"
+        url "https://ftpmirror.gnu.org/bash/bash-5.2-patches/bash52-#{p}"
         mirror "https://ftpmirror.gnu.org/bash/bash-5.2-patches/bash52-#{p}"
         mirror "https://mirrors.kernel.org/gnu/bash/bash-5.2-patches/bash52-#{p}"
         mirror "https://mirrors.ocf.berkeley.edu/gnu/bash/bash-5.2-patches/bash52-#{p}"
@@ -66,7 +64,6 @@ class Bash < Formula
   # We're not using `url :stable` here because we need `url` to be a string
   # when we use it in the `strategy` block.
   livecheck do
-    # url "https://ftp.gnu.org/gnu/bash/?C=M&O=D"
     url "https://ftpmirror.gnu.org/bash/?C=M&O=D"
     regex(/href=.*?bash[._-]v?(\d+(?:\.\d+)+)\.t/i)
     strategy :gnu do |page, regex|
@@ -136,3 +133,4 @@ class Bash < Formula
     assert_equal "csv is a shell builtin\n", shell_output("#{bin}/bash -c 'enable csv; type csv'")
   end
 end
+

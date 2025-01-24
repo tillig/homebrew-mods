@@ -1,10 +1,8 @@
-# Modified to skip ftp.gnu.org.
 class Gettext < Formula
   desc "GNU internationalization (i18n) and localization (l10n) library"
   homepage "https://www.gnu.org/software/gettext/"
-  # url "https://ftp.gnu.org/gnu/gettext/gettext-0.23.1.tar.gz"
-  # mirror "https://ftpmirror.gnu.org/gettext/gettext-0.23.1.tar.gz"
   url "https://ftpmirror.gnu.org/gettext/gettext-0.23.1.tar.gz"
+  mirror "https://ftpmirror.gnu.org/gettext/gettext-0.23.1.tar.gz"
   mirror "http://ftp.gnu.org/gnu/gettext/gettext-0.23.1.tar.gz"
   sha256 "52a578960fe308742367d75cd1dff8552c5797bd0beba7639e12bdcda28c0e49"
   license "GPL-3.0-or-later"
@@ -68,3 +66,4 @@ class Gettext < Formula
     system bin/"gettext", "test"
   end
 end
+
