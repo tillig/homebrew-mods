@@ -32,7 +32,7 @@ Param(
 )
 
 Begin {
-    Function Convert-ToFiservFormula {
+    Function Convert-ToSafeFormula {
         [CmdletBinding()]
         Param(
             [Parameter(Mandatory = $True, ValueFromPipeline = $True)]
@@ -82,7 +82,7 @@ Process {
         $originalFile = Import-RemoteFormula -Formula $formula
         Try {
             $content = Get-Content $originalFile -Raw
-            $content = $content | Convert-ToFiservFormula
+            $content = $content | Convert-ToSafeFormula
             $content | Set-Content -Path $originalFile -Force -WhatIf:$False
 
             $destinationFile = "$baseFormulaPath/$formula"
