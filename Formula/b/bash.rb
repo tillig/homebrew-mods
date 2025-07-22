@@ -2,6 +2,7 @@ class Bash < Formula
   desc "Bourne-Again SHell, a UNIX command interpreter"
   homepage "https://www.gnu.org/software/bash/"
   license "GPL-3.0-or-later"
+  revision 1
   head "https://git.savannah.gnu.org/git/bash.git", branch: "master"
 
   stable do
@@ -72,19 +73,23 @@ class Bash < Formula
 
   bottle do
     rebuild 1
-    sha256 arm64_sequoia: "0cb8fa2fef54f0215e01137dae12119af693da6f9d468c8eb882c979dcee91a0"
-    sha256 arm64_sonoma:  "fe8e711dbad1902aea7b1237a93addb1cbd4fd643144ee2fa860800972e15b8d"
-    sha256 arm64_ventura: "d97833da4ac2bce736f63168162707cdaa3c57547e63b2ef39c2500be4e2a4b9"
-    sha256 sonoma:        "03e937973106a6bce6cf3830e6cc21b48250bfd79c0b93899404328008296d68"
-    sha256 ventura:       "0afa527fcb68b0182c63f395ac25474e42d90c7dae8e009c4c8a4c8a1baa20ee"
-    sha256 arm64_linux:   "3bc02cf84788f354c443bd15218b2bdacbce4fcd4364852afed1caf2a25ef30c"
-    sha256 x86_64_linux:  "505c5c1260fe9a3a7251baa06dc0acecd0274bdda4686edb04202385523279e6"
+    sha256 arm64_sequoia: "2d1976d5fa23c6baf0774bcc5bc9ebb2aa77d16dbff77d8dee0361425239079b"
+    sha256 arm64_sonoma:  "57b38131c47227f0ba3099b361aadb108d8deec5d89df10a5c5b700322018215"
+    sha256 arm64_ventura: "21e31f58fd13fe5016314325eb3270e25ea5f35aadc8407cb8e2aead098e5805"
+    sha256 sonoma:        "c4d09853a3e4e327df66f97e7a53a72cce00538111c15ee79c5bcf9050f2dcbe"
+    sha256 ventura:       "495c6ba5b1ba92cb2886f644e0da5bdea8f52104c3355e50e566278ec132f257"
+    sha256 arm64_linux:   "a45194e6fbdead6482335c49140c266db5a95dcabbf94c0c48544afae4131e53"
+    sha256 x86_64_linux:  "88873cd509c50164b914cd2e6beea5709f9bbb14c6774cedc7e601fab6092faf"
   end
 
-  depends_on "gettext"
   # System ncurses lacks functionality
   # https://github.com/Homebrew/homebrew-core/issues/158667
   depends_on "ncurses"
+  depends_on "readline"
+
+  on_macos do
+    depends_on "gettext"
+  end
 
   def bash_loadables_path
     [
@@ -110,7 +115,10 @@ class Bash < Formula
 
     ENV.append_to_cflags "-DDEFAULT_LOADABLE_BUILTINS_PATH='\"#{bash_loadables_path}\"'"
 
-    system "./configure", "--prefix=#{prefix}", "--with-curses", "--without-included-gettext"
+    # Avoid crashes on macOS 15.0-15.4.
+    ENV["bash_cv_func_strchrnul_works"] = "no" if OS.mac? && MacOS.version <= :sequoia
+
+    system "./configure", "--prefix=#{prefix}", "--with-curses", "--with-installed-readline"
     system "make", "install"
 
     (include/"bash/builtins").install lib/"bash/loadables.h"
@@ -126,6 +134,10 @@ class Bash < Formula
     # If the following assertion breaks, then it's likely the configuration of `DEFAULT_LOADABLE_BUILTINS_PATH`
     # is broken. Changing the test below will probably hide that breakage.
     assert_equal "csv is a shell builtin\n", shell_output("#{bin}/bash -c 'enable csv; type csv'")
+
+    return if OS.linux? || MacOS.version > :sequoia
+
+    refute_match "U _strchrnul", shell_output("nm #{bin}/bash")
   end
 end
 
