@@ -1,20 +1,29 @@
 class Wget < Formula
   desc "Internet file retriever"
   homepage "https://www.gnu.org/software/wget/"
-  url "https://ftpmirror.gnu.org/wget/wget-1.25.0.tar.gz"
-  sha256 "766e48423e79359ea31e41db9e5c289675947a7fcf2efdcedb726ac9d0da3784"
   license "GPL-3.0-or-later"
+  revision 2
+  compatibility_version 1
 
-  no_autobump! because: :requires_manual_review
+  stable do
+    url "https://ftpmirror.gnu.org/wget/wget-1.25.0.tar.gz"
+    mirror "https://ftpmirror.gnu.org/wget/wget-1.25.0.tar.gz"
+    sha256 "766e48423e79359ea31e41db9e5c289675947a7fcf2efdcedb726ac9d0da3784"
+
+    # Backport support for OpenSSL 4
+    patch do
+      url "https://gitlab.com/gnuwget/wget/-/commit/aaec8d52a06c46eeab570b8ef3e10760ebc66b7a.diff"
+      sha256 "96aa2923ce9a12dbc2c82969705da4f72792816b087dbee19c04cd2cb2769ea8"
+      type :backport
+    end
+  end
 
   bottle do
-    sha256 arm64_sequoia: "a93dd95c5d63036e026b526e000d33fae7fb44d9a8fda5afc89bff112438c6b3"
-    sha256 arm64_sonoma:  "4d180cd4ead91a34e2c2672189fc366b87ae86e6caa3acbf4845b272f57c859a"
-    sha256 arm64_ventura: "7fce09705a52a2aff61c4bdd81b9d2a1a110539718ded2ad45562254ef0f5c22"
-    sha256 sonoma:        "5650778a8e7a60c2dea9412dd21d2f5e8ff4f224dbefbdf54924b99012062edc"
-    sha256 ventura:       "78cee523a9b58a7b824b51767935f68c9838e9f673e70d001982858001e766ff"
-    sha256 arm64_linux:   "2f06529fc47fa99e9d4a5ebd19f25c046dda236278c7c5979e080ad7e5387236"
-    sha256 x86_64_linux:  "ab5f3c1c60bef4e2a4781e9b29af8afb48ead837136c419edd7febdf44b59058"
+    sha256 arm64_golden_gate: "d89ea78fbc8ec79a80d52c7dcaa28e50c2bb435acd1470ee2cae4ef7646eff7e"
+    sha256 arm64_tahoe:       "38024004cafd418d1ce2e2cd6b11ecf8a5e6a24d2641ba624dd016bb650d2240"
+    sha256 arm64_sequoia:     "899cfc98a094aa22f54d7b46762f2e9529dfa621bc2103d2612747ad251c633c"
+    sha256 arm64_linux:       "ba2ac22093f8e594a55574c7bf86a488dfe0a539faf5370d20fab3a3872d4254"
+    sha256 x86_64_linux:      "32d971ac2d28eb31c50812004d459c597fbdd6691db82129e244b5e80c06f952"
   end
 
   head do
@@ -27,9 +36,8 @@ class Wget < Formula
 
   depends_on "pkgconf" => :build
   depends_on "libidn2"
-  depends_on "openssl@3"
-
-  uses_from_macos "zlib"
+  depends_on "libpsl"
+  depends_on "openssl@4"
 
   on_macos do
     depends_on "gettext"
@@ -38,23 +46,30 @@ class Wget < Formula
 
   on_linux do
     depends_on "util-linux"
+    depends_on "zlib-ng-compat"
   end
+
+  # Test downloads from the network
+  allow_network_access! :test
 
   def install
     system "./bootstrap", "--skip-po" if build.head?
-    system "./configure", "--prefix=#{prefix}",
-                          "--sysconfdir=#{etc}",
+    system "./configure", "--sysconfdir=#{etc}",
                           "--with-ssl=openssl",
-                          "--with-libssl-prefix=#{Formula["openssl@3"].opt_prefix}",
+                          "--with-libssl-prefix=#{formula_opt_prefix("openssl@4")}",
                           "--disable-pcre",
                           "--disable-pcre2",
-                          "--without-libpsl",
-                          "--without-included-regex"
+                          "--with-libpsl",
+                          "--without-included-regex",
+                          *std_configure_args
     system "make", "install"
   end
 
   test do
     system bin/"wget", "-O", File::NULL, "https://google.com"
+
+    # Verify PSL support is built in via libpsl
+    assert_match "+psl", shell_output("#{bin}/wget --version")
   end
 end
 
