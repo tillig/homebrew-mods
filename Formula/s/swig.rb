@@ -1,9 +1,10 @@
 class Swig < Formula
   desc "Generate scripting interfaces to C/C++ code"
   homepage "https://www.swig.org/"
-  url "https://github.com/tillig/homebrew-mods/releases/download/swig-4.3.1/swig-4.3.1.tar.gz"
-  sha256 "44fc829f70f1e17d635a2b4d69acab38896699ecc24aa023e516e0eabbec61b8"
+  url "https://github.com/tillig/homebrew-mods/releases/download/swig-4.5.1/swig-4.5.1.tar.gz"
+  sha256 "7fec50b27deddab5455a9633780b6341eddfb96215a7619e93a76eb27178f653"
   license "GPL-3.0-or-later"
+  compatibility_version 1
 
   livecheck do
     url "https://sourceforge.net/projects/swig/rss?path=/swig"
@@ -11,13 +12,12 @@ class Swig < Formula
   end
 
   bottle do
-    sha256 arm64_sequoia: "1a45fd47424edbf0a25a81c818695b2669f9a8a842fcdc89bd4ba75f84359ad3"
-    sha256 arm64_sonoma:  "05db31cb7bde7343e73091a2e3d8c91ee55041f023967cc0430a48a661085ce1"
-    sha256 arm64_ventura: "a875754e52f8ceea57710f4fded57d1ff208f54707a4f7c0f4ebfe7f807b3df7"
-    sha256 sonoma:        "707733605cd77b4c73261e45e434ca33a2b9cb3d499904d17fbd3fa570124951"
-    sha256 ventura:       "b870cddb5b2fff93b65d2f051db91dc5eefc049b972333af7159bee73aa77c09"
-    sha256 arm64_linux:   "8460b88cba0cdbe9a30cb1f243a314c1f789b0ceb3a1fe7aadf93ce644e5e9ff"
-    sha256 x86_64_linux:  "cef3ffee024b315520f39c088de7108d586b1d295f4764bdf5ec283d2e5a33da"
+    sha256 arm64_golden_gate: "eb8e83568acb93e4ac956a0e25f58a9ed4427fade74f7ffa9a663ec90e81c71a"
+    sha256 arm64_tahoe:       "da75d54cd9ad9ae5c7bfc712734f8a971f61735f030584f34e929462223208c3"
+    sha256 arm64_sequoia:     "81ecbdfb1e57316004365b47a1c3f3cea100c3ef5f7a9ff0c218b8da73821461"
+    sha256 arm64_sonoma:      "aae4b6f5244c4c56ec3972870855203a78bf7719416365c7f487c549e066de00"
+    sha256 arm64_linux:       "29bcdf36ce033dcc962832928418a115a1ac7833252b8ae47f41875941a7e0bc"
+    sha256 x86_64_linux:      "7d404ec2a625493509c20bfa598c8a7b9bee7c90f99d884822307cae9164f53a"
   end
 
   head do
@@ -30,7 +30,10 @@ class Swig < Formula
   depends_on "pcre2"
 
   uses_from_macos "python" => :test
-  uses_from_macos "zlib"
+
+  on_linux do
+    depends_on "zlib-ng-compat"
+  end
 
   def install
     ENV.append "CXXFLAGS", "-std=c++11" # Fix `nullptr` support detection.
@@ -70,7 +73,8 @@ class Swig < Formula
     ENV.remove_from_cflags(/-march=\S*/)
     system bin/"swig", "-python", "test.i"
     system "python3", "-m", "venv", ".venv"
-    system testpath/".venv/bin/pip", "install", *std_pip_args(prefix: false, build_isolation: true), "."
+    # Avoid `std_pip_args`: the macOS system pip is too old for its cooldown flag
+    system testpath/".venv/bin/pip", "install", "--verbose", "--no-deps", "."
     assert_equal "2", shell_output("#{testpath}/.venv/bin/python3 ./run.py").strip
   end
 end
