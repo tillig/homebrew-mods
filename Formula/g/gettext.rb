@@ -1,24 +1,28 @@
 class Gettext < Formula
   desc "GNU internationalization (i18n) and localization (l10n) library"
   homepage "https://www.gnu.org/software/gettext/"
-  url "https://ftpmirror.gnu.org/gettext/gettext-0.26.tar.gz"
-  mirror "https://ftpmirror.gnu.org/gettext/gettext-0.26.tar.gz"
-  mirror "http://ftp.gnu.org/gnu/gettext/gettext-0.26.tar.gz"
-  sha256 "39acf4b0371e9b110b60005562aace5b3631fed9b1bb9ecccfc7f56e58bb1d7f"
-  license "GPL-3.0-or-later"
+  url "https://ftpmirror.gnu.org/gettext/gettext-1.0.tar.gz"
+  mirror "https://ftpmirror.gnu.org/gettext/gettext-1.0.tar.gz"
+  sha256 "85d99b79c981a404874c02e0342176cf75c7698e2b51fe41031cf6526d974f1a"
+  license all_of: [
+    "GPL-3.0-or-later",
+    "LGPL-2.1-or-later", # libintl, libasprintf
+  ]
+  compatibility_version 1
 
   bottle do
-    sha256 arm64_sequoia: "b25ac1e62443f8f79eadc3dadf6d3af954d4cbc33a0577fc626aa0c8f2bb01a5"
-    sha256 arm64_sonoma:  "1615e931a23c6875c9bcae0ffccf5a4a35f796fb90b7192804c771cb25d766e2"
-    sha256 arm64_ventura: "c9cf89dc04f56eb4939b00eea3c0361cd4498f8237e527f2f741682bf7e6de61"
-    sha256 sonoma:        "87ac92958d68cfd4c000879302cc8237f9ab38aec9429c6970b31667c3d53870"
-    sha256 ventura:       "36da5ebc7064150238eb5fd4c9640ee9ef2482cabb9707357d0ab7b198bf9c4f"
-    sha256 arm64_linux:   "65da5d3da37d8ac70048648ec6c0680d5c22f9f55b4452a61374c8c267d1990f"
-    sha256 x86_64_linux:  "fce5e0fea8441a729599191161a94a03ce4328e5c7a276df4ec322ff5e92958f"
+    rebuild 2
+    sha256 arm64_golden_gate: "4db034aa2ae4b1f18d86906707ece14c895198090ad028d2fb1ae4fbeb3ca6fd"
+    sha256 arm64_tahoe:       "3af5392939e50a6ef73e42799fc3ead6ef72fe0040c0a45183d04a4008306d6a"
+    sha256 arm64_sequoia:     "98a116d35792ccd730360ffc8c0d8fc5799b2282b96bb7696192c573f064a331"
+    sha256 arm64_linux:       "3cad13274e2b89d4b625623c0e6553b341dc04f2f24465892c511332dc80c2d2"
+    sha256 x86_64_linux:      "2d8896fdb7fe81fc987cefd609ddcd3696f99b71b7b6b60508a2c53f0e99eb5a"
   end
 
+  depends_on "json-c" # for spit
   depends_on "libunistring"
 
+  uses_from_macos "curl" # for spit
   uses_from_macos "libxml2"
   uses_from_macos "ncurses"
 
@@ -26,14 +30,18 @@ class Gettext < Formula
     depends_on "acl"
   end
 
+  deny_network_access!
+
   def install
+    # Workaround for newer Clang
+    ENV.append_to_cflags "-Wno-incompatible-function-pointer-types" if DevelopmentTools.clang_build_version >= 1500
+
     # macOS iconv implementation is slightly broken since Sonoma.
-    # This is also why we skip `make check`.
     # upstream bug report, https://savannah.gnu.org/bugs/index.php?66541
-    ENV["am_cv_func_iconv_works"] = "yes" if OS.mac? && MacOS.version == :sequoia
+    ENV["am_cv_func_iconv_works"] = "yes" if OS.mac? && MacOS.version >= :sequoia
 
     args = [
-      "--with-libunistring-prefix=#{Formula["libunistring"].opt_prefix}",
+      "--with-libunistring-prefix=#{formula_opt_prefix("libunistring")}",
       "--disable-silent-rules",
       "--with-included-glib",
       "--with-included-libcroco",
@@ -54,7 +62,7 @@ class Gettext < Formula
       # your system somehow.
       "--with-included-gettext"
     else
-      "--with-libxml2-prefix=#{Formula["libxml2"].opt_prefix}"
+      "--with-libxml2-prefix=#{formula_opt_prefix("libxml2")}"
     end
 
     system "./configure", *std_configure_args, *args
@@ -65,6 +73,7 @@ class Gettext < Formula
 
   test do
     system bin/"gettext", "test"
+    assert_match "spit: missing --model option\n", shell_output("#{bin}/spit 2>&1", 1)
   end
 end
 
