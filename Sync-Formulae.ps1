@@ -58,7 +58,7 @@ Begin {
             $Formula
         )
 
-        $remoteUrl = "https://raw.githubusercontent.com/Homebrew/homebrew-core/refs/heads/master/Formula/$Formula"
+        $remoteUrl = "https://raw.githubusercontent.com/Homebrew/homebrew-core/refs/heads/main/Formula/$Formula"
         Write-Verbose "Remote location for $Formula is $remoteUrl."
         $tempFile = New-TemporaryFile -WhatIf:$False
         Invoke-WebRequest -Uri $remoteUrl -OutFile $tempFile
