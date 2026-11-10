@@ -45,6 +45,7 @@ Begin {
             # Replace URLs.
             $Content = $Content -replace 'https://ftp.gnu.org/gnu/', 'https://ftpmirror.gnu.org/'
             $Content = $Content -replace 'https://downloads.sourceforge.net/project/swig/swig/', 'https://github.com/tillig/homebrew-mods/releases/download/'
+            $Content = $Content -replace 'https://downloads.sourceforge.net/project/netpbm/super_stable/(\d+\.\d+\.\d+)/netpbm-\1.tgz', 'https://github.com/tillig/homebrew-mods/releases/download/netpbm-$1/netpbm-$1.tgz'
             $Content
         }
     }

@@ -2,6 +2,7 @@
   "b/bash.rb",
   "g/gettext.rb",
   "lib/libidn2.rb",
+  "n/netpbm.rb",
   "s/swig.rb",
   "w/wget.rb"
 ]
